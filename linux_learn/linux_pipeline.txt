@@ -1,0 +1,149 @@
+Loose Overview (rest you will have to get from an OS class):
+
+CPU:
+the CPU doesn't just sequentially execute bytes, it has a few key components:
+
+Registers: tiny, fast storage used for quick calculations
+
+Instruction Pointer(IP/RIP): holds the address of the next instructions
+
+CPU CYCLE:
+fetch instruction held at address in RIP, Decodes the instructions, Executes the instruction, Reads or writes to memory,
+Updates the RIP. (agian and again and again)
+
+Cool, but they where do these instructional bytes live? in RAM!
+(in some region the op mapped for this running thing)
+
+address:  0x1000  0x1001  0x1002 ...
+value:      90      90      C3   ...
+
+
+
+Stack:
+
+reason: sometimes, programs want to complete nested tasks,ie main() calls parse(), parse() calls tokenize()
+and tokenize() calls next_char()
+
+HOWEVER: when next_char is finished, we want to go back to tokenize() at the exact next instruction, with the right
+temporary values, then back to parse and then main.
+
+THUS: we need some way to save:
+Return Addresses: where to continue after the calls
+Temporary Storage: local variables, saved registers, etc
+and a clean way of doing recursion.
+
+SOLUTION? THE STACK!
+
+Definitions:
+Memory Address: a memory address is a number that denotes the location of a single byte in memory.
+thus, saying 0x0001 means that there is one byte at 0x0001
+
+What is the Stack Precisely:
+
+1: a continuous string of memory Addresses
+2: a cpu register called the RSP that contains a single memory address
+3: A convention that memory addresses near the value of RSP are to be treated as a stack datatype,
+meaning they have methods push pop call ret that treats it in a LIFO way
+
+RSP: the RSP or stack pointer contains a memory address inside of the stack, specifically the current address
+of the most recent call. IT DOES NOT HOLD THE LAST CALL. 
+
+Define S as being the current memory address in the RSP
+lefine STACKHIGH to me the highest point in memory of the stack 
+(recall that stack memory GROWS DOWNWARD, meaning the more you add the lower into memory you go (closer to 0x0000))
+THAT is what people mean by the stack range!!!
+
+STACK HIGH 0x01000
+... (everything inside of the stack)
+S 0x00FF
+... (continues growing this way)
+
+
+NOW, WHAT DOES PUSH DO?
+
+when you write push V (for address v):
+
+1. decriments RSP by 8 (RSP = RSP - 8)
+(WHY? because an address is 8 bytes, to it makes room for the address)
+2. Inside of the 8 new bytes allocated, it will STORE the address in its bytes (RSP + 0, RSP + 1, ... RSP + 7)
+
+
+what about POP INTO X:
+1. reads those 8 bytes by starting at RSP and going back 7 bytes
+2. puts that value into the X register
+3 adds back 8 to the RSP to effectively pop that address off the stack
+
+CRUTIAL: OKAY BUT WHAT IS THIS V??? THATS THE RETURN ADDRESS!!!
+remember, the stack was made so we would know where to return, so just put that address into the stack, 
+and when we get the pop instruction, just pop it off and continue the way you were.
+
+
+
+PUTTING IT TOGETHER:
+what does call foo do?
+
+1. Computes Return Address, ie the address to continue from after executing this command
+2. Pushes the address to the stack so it knows where to return to.
+(the push then decriments RSP by 8, and copies in the bytes by adding up as usual)
+3. Then its sets RIP to the address of foo (its first instruction)
+4. then it will start executing procedurally untill reaching RETURN
+
+what does ret do?
+
+1. pop into RIP
+meaning it reads the address that was pushed onto the stack
+then it adds 8 to the stack pointer
+then it puts the read address into the RIP
+
+
+
+OKAY COOL, but what about the Stack Frame?
+
+STACK FRAME: region of memory in the stack that the function treats as its own during the call
+How does it do this??? the same way the stack was expanded the first time.
+WHAT IF instead of incrimenting and decrimenting by 8, we then also did another N bytes to store locals
+using sub rsp, N we can substract N from RSP to make teh stack even larger, allowing us to store more bytes
+this just has to be remembered when returning
+
+
+EXE:
+
+
+(101 total bytes, instead of 8, just remember to add by 100 to remove this stuff)
+
+
+
+B107
+B106
+B105
+B104
+B103 
+B102
+B101
+OLD-TOP: address 100
+N99
+... (here can store locals)
+
+N1
+
+Then when returning just add back N followed by 8 bytes, and you effectively popped that away.
+
+
+NOTE 1: the RSP points to the place where the locals are stored (assuming you allocated a stack frame for them)
+IT DOES NOT POINT TO THE ADDRESS, since first you push the address, then the locals space
+
+NOTE 2: you are NOT!!!1 pushing the RIP into the STACK, you are pushing the RETURN ADDRESS, which is one address afterward
+or the next place 
+
+return_address = address_of_call + length_of_call_instruction
+
+
+
+
+Putting it all together:
+
+
+
+
+
+

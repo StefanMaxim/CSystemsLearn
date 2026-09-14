@@ -1,0 +1,109 @@
+NOTE:
+
+bash vs tmux:
+tmux isnt a separate terminal, but rather a terminal multiplexer that runs ontop of the bash shell:
+
+Start from the basics:
+
+Hardware:
+your computer + periferals (cpu, keyboard, Memory, display)
+
+Kernel: The core of the operating system.
+it schedules cpu time, memory allocation, etc
+NOTE: programs do not interact directly with hardware! instead they query the kernel to do it for them via system calls
+(calls directly to the kernel)
+
+
+
+Shell: a program that lets you control the operating system (reads your commands and starts programs)
+Exe:
+launches programs like python, ssh, or other things like that (which are executables btw)
+piping / redirection: cat a | grep x > out.txt 
+managed environment variables like PATH and HOME (more or that later)
+common examples like bash or zsh
+
+Terminal:
+The window that displays the text input/output.
+
+All together: opening a terminal opens a text session (PTY)
+That starts your shell (zsh / bash)
+shell runs commands like python or ssh
+these commands ask the kernel to do work for them (ie allocate me some memory and compute this for me)
+
+
+
+
+
+
+
+
+
+From Scratch:
+
+Computers:
+CPU, Memory, Storage, Devices (keyboard, screen, network card, etc)
+IMPORTANT: Devices just means a piece of hardware that the kernel knows how to interact with (disk drive, partition,
+keyboard, gpu, serial port, pseudo-things like a terminal)
+
+What is an operating system:
+if mutliple files ran at once, they would fight over cpu, memory and the Devices
+OS fixes that.
+The CORE PART of the OS is the kernel, which lets you:
+schedule CPU time
+manage memory
+control Devices
+and enforce permissions
+(EVERYTHING else, like shells, browsers, and editors are regular programs)
+
+
+CPU stuff:
+cpus have 
+Registers: tiny, fast storage for operation
+Instruction POINTER: a special register (IP,RIP,PC) that holds the address of the next instructions
+CPU cycle:
+repeatedly fetches instruction at address in IP, decodes, executes, and updates UP to the next address
+
+Question: okay but where do these instruction bytes live? ANSWER: in RAM:
+Memory is an address space; cpu runs by reading addresses.
+
+exe:
+
+address:    0x1000      0x1001      0x1002  ...
+value:      90          90          C3      ...
+
+The CPU, reads memory at RIP to get instruction, interprets the bytes as an instruction, 
+maybe reads/writes bytes to other memory addresses as part of teh instruction, then updates RIP
+
+THUS: to run program, need instruction bytes in memory, and a starting RIP
+
+
+
+
+
+
+
+NOW, into processes:
+
+You get the CPU registers + memory stuff, but where do processes come it.
+The CPU can only run one stream of instructions at once, but what if you want to run multiple programs at a time?
+
+to do that, the os needs to separate:
+1: each programs memory (so they dont accidentaly re-write ontop of eachother)
+2: Each programs registers (RIP or where you were, RSP )
+
+
+
+
+
+PROCESSES:
+a process = the os's container for running code. allmost everything you do in a terminal is the shell creating/managing PROCESSES
+
+Process vs Program:
+Program = bytes on disk (an executable like /bin/ls)
+Process = that program loaded into memory and running with the os tracking it
+
+
+
+
+
+

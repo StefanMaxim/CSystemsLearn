@@ -1,0 +1,47 @@
+Before linux, there was UNIX, made by ATNT bell labs
+
+this later became POSIX, or a set of rules that ensure that code written in one system can be compatible and portable
+ie, being POSIX complient means code can be easily ported from one os to another
+
+EXE: standard APIs (application programming interfaces) which is a set of rules and protocals that allows different 
+software system to communicate
+
+also same shells + utilities, file system semantics and portability
+
+GPL: gnu public licence which linux is registered under
+
+linux is a kernel, sits between hardware and software
+
+when you power on computer, bootloader, usually grub will load the linux kernel into RAM
+
+then it detects hardware and starts init system, usually a tool called systemd
+
+one initialized, kernel starts up application in user space
+
+
+
+kernel has many responsibilties:
+allocating and deallocating memory for processes
+create virtual memory by using more memory than available by tapping into harddrive
+
+
+kernel also provides file system. most common is ext4
+
+interacts with peripherals via drivers
+
+Kernel is at level 0, rest of application are in user space in ring 3
+so to use kernel, need syscalls.
+so in c when you do a write(), its actually a wrapper that makes the syscall as defined in glibc
+
+
+GNU: provides coreutils for linux, which are software that make the kernel useful to humans
+( to explore, open up the terminal, which is a GUI that lets you run commands via the shell)
+
+Shell: called so because provides protection between userspace and kernel
+most common is bash
+
+typing echo "hi mom" prints to stdout, but under hood syscall was made to kernel which managed drivers to turn into 
+pixels on screen
+
+NOTE: saying man touch or man (something) to see manual
+
