@@ -137,7 +137,7 @@ kernel returns to user mode
 
 libc write() returns
 
-       ↓
+
 
 your C program continues
 
@@ -167,7 +167,7 @@ This will be turned into machine/assembly code (roughly):
 mov edi, 2
 mov esi, 3
 call add
-// edi and esi values NOT guarenteed to be saved (ie still 2, 3)
+// edi and esi values NOT guarenteed to be saved (ie still 2, 3) (caller-saved)
 
 BY CONTRAST:
 ```c
@@ -199,7 +199,7 @@ return value	rax
 
 Differences:
 1: RAX is usually just the return register, but here it is overloaded to also be the register used for selecting
-the syscall
+the syscall (also caller saved)
 
 2: Notice that RCX is not used as an argument, instead uses r10. 
 This is because RCX is already in use, used to store the stack return address after the syscall terminates (ie the current RIP, ie the next instruction to execute)
@@ -230,7 +230,7 @@ CPU Before Syscall:
 CPU
 ────────────────────────────────
 RIP = address inside your program of the NEXT instruction
-RSP = your user stack (pointer to the return address in the stack, when call ret, will go here, read the address, and load it into the rip to go back to the previous function call) (look at stack notes!!!)
+RSP = your user stack (pointer to the return address in the stack, when call ret, will go here, read the address, and load it into the rip to go back to the previous function call) (look at stack notes!!!) (RSP GIVES RECURSIVE FUNCTION)
 registers = your values
 privilege = user
 
@@ -274,3 +274,102 @@ user:
     next instruction
 
 ### System Call Error handling
+At the syscall level, error are represented as negative numbenrs:
+-EBADF
+-EFAULT
+-ENOMEM
+stored in RAX
+
+But at the C level, its -1, and then inspected via errno:
+
+write(...) == -1
+errno (more on this in C learn), but its a thread global int, that can be string with strerror(errno)
+refers to most recent error, so only one value
+
+This conversion, between the negative nums in rax and the c behavior is done by libc
+(its usually just inverse the minus, return -1, and set errno to the positive lol)
+
+
+## File Descriptors in Processes
+
+(again, this is covered in pipes_learn), but loosely, file descriptors, and the kernel-side file descriptor
+table mapping descriptors to descriptions (structs) is PROCESS-DEPENDENT, not GLOBAL
+
+each process has some table:
+process
+   |
+   +-- fd table
+        |
+        +-- 0
+        +-- 1
+        +-- 2
+        +-- 3
+
+Where "3" is not the file, but an index into the calling/current process's descriptor table.
+
+exe:
+That process's FD table
+
+0 ────→ terminal input 
+1 ────→ terminal output
+2 ────→ terminal error
+3 ────→ kernel open-file object for foo.txt
+
+ASIDE: FILE DESCRIPTOR VS DESCRIPTIONS:
+In the process's description table, it is mapping ints to file descriptions, which are kernel-side structs
+that describe the file, contains things like perms, size, offset, ptr to inode, ref count, etc.
+These "files" dont have to be standard text files either, they can be:
+a regular file
+a terminal
+a pipe
+a TCP socket
+a device like /dev/null
+
+CRUTIALLY: this mapping is NOT fixed, you can allways change which file description is referenced by which number.
+Very common, called "pipes and redirects" (prolly should read the aptly named file pipes_learn.md to learn more)
+
+
+
+thus:
+```c
+write(3,...)
+```
+does:
+current process
+       ↓
+fd table
+       ↓
+entry 3
+       ↓
+open file description
+
+(To write your own syscall, have to recall that doesnt usually create an interrupt stack frame)
+(thus, you are responsible for saving registers before the call)
+
+(NOTE: IA32_LSTAR is a MSR, or **Model-Specific Register**, which means that it depends on the model)
+Its address is: 0xC0000082
+To write to it:
+mov $0xC0000082, %ecx
+wrmsr (special instruction that allows you to access it)
+
+FOR NORMAL REGISTERS, READ SIMPLY VIA:
+uint64_t rax;
+
+asm volatile (
+    "mov %%rax, %0"
+    : "=r"(rax) //(rax) means choose some general purpose register to put it in, and save to rax
+);
+(asm volatile is gcc entension that lets you put assembly into c code directly)
+asm = tells compiler this command is assembly, and to put it into the instruction area
+volatile = dont assume this can be removed or moved just because the outputs arent obvious to you
+useful for assembly code with side effects.
+
+exe:
+
+int x = 0;
+while(x == 0){} //compiler will optimize this away, 
+
+but with volatile:
+volatile int x = 0; //it will check x EVERY TIME. Not guarenteed to not change
+without, compiler may read x, and keep in a register, never re-reading x.
+But, with volatile will keep rereading

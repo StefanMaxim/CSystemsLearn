@@ -4,7 +4,7 @@ CPU executes instruction
 Virtual address 0x401234
         │
         ▼
-MMU uses CR3
+MMU uses CR3 (Technically, it will check the TLB first to see if it was already translated, but then walks)
         │
         ▼
 Walk page tables
@@ -12,22 +12,22 @@ Walk page tables
         ▼
 "Is virtual page 0x401000 mapped?"
         │
-        ├── YES → get physical frame → access RAM
+        ├── YES → get physical frame → access RAM (usually 4kb per page) (also checks perms to see if SIGSEGV)
         │
         └── NO
               │
               ▼
-         PAGE FAULT
+         PAGE FAULT (not SIGSEGV)
               │
               ▼
-        CPU enters kernel
+        CPU enters kernel mode
               │
               ▼
        kernel's page-fault
           handler runs
               │
               ▼
-   "Ah, this address belongs
+   "Ah, this address belongs (looks at kernel-side VMA struct)
     to a file-backed VMA."
               │
               ▼
