@@ -682,3 +682,10 @@ CTRL-r lets you see shell history, displays: bck-i-search or (reverse-i-search)
 typing "scp" will query bash history for scp commands
 CTRL-r to iterate through results
 CTRL-c to exit search
+
+
+
+## du command
+du is for disk utility (lets you see the size of different files)
+
+du -lh //l is long format, h is human readable, s is summary(just the directory not every file inside), b is in bytes
